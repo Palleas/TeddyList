@@ -23,7 +23,8 @@ let package = Package(
             dependencies: ["GRDB"]
         ),
         .testTarget(
-            name: "TeddyListCoreTests"
+            name: "TeddyListCoreTests",
+            dependencies: ["GRDB", "TeddyListCore"]
         )
 
     ]
