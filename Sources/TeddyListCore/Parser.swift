@@ -23,8 +23,6 @@ final class Parser {
         var tasks: [Task]?
 
         source.enumerateLines { (line, stop) in
-            print("Current line \(line)")
-
             // trim the line
             let line = line.trimmingCharacters(in: .whitespaces)
 
