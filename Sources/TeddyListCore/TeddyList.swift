@@ -9,6 +9,15 @@ public final class CommandLineTool {
     }
 
     public func run() throws {
+        if let first = arguments.first, first == "--help" {
+            help()
+        } else {
+            try printAllLists()
+        }
+
+    }
+
+    func printAllLists() throws {
         let homeDirURL = URL(fileURLWithPath: NSHomeDirectory())
         let dbQueue = try DatabaseQueue(path: "\(homeDirURL.absoluteString)/Library/Containers/net.shinyfrog.bear/Data/Documents/Application Data/database.sqlite")
 
@@ -34,5 +43,19 @@ public final class CommandLineTool {
                 }
             }
         }
+    }
+
+    func help() {
+        let content = """
+TeddyBear v0.1
+==============
+
+Parse your Bear notes and list the todolists.
+
+Usage: teddylist <command> [<args>]
+
+Run teddyList --help to print this message.
+"""
+        print(content)
     }
 }

@@ -1,8 +1,9 @@
 import TeddyListCore
 import Foundation
 
-let argv = ProcessInfo.processInfo.arguments
-let tool = CommandLineTool()
+let argv = Array(ProcessInfo.processInfo.arguments.dropFirst())
+
+let tool = CommandLineTool(arguments: argv)
 
 do {
     try tool.run()
