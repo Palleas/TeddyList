@@ -17,7 +17,7 @@ class ParserTests: XCTestCase {
                 Task(title: "Ketchup", done: false),
                 Task(title: "A new hat for @mergesort", done: true),
                 Task(title: "pants", done: true),
-                Task(title: "iPad pro", done: true)
+                Task(title: "iPad pro", done: false)
             ])
         ]
 
