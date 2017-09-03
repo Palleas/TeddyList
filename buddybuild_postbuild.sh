@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -e
+set -o pipefail
+
 bundle install
 
 mkdir -p buddybuild_artifacts/SwiftTests
