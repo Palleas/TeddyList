@@ -1,61 +1,69 @@
 import Foundation
 import GRDB
 
-public final class CommandLineTool {
-    private let arguments: [String]
+struct Note {
+    let title: String
+    let content: String
+}
 
-    public init(arguments: [String] = CommandLine.arguments) {
-        self.arguments = arguments
+extension Note: AutoEquatable {}
+
+protocol LocalDatabase {
+    func findNotes() throws -> [Note]
+}
+
+final class SQLiteDatabase: LocalDatabase {
+    private let db: Database
+
+    init(db: Database) {
+        self.db = db
     }
 
-    public func run() throws {
-        if let first = arguments.first, first == "--help" {
-            help()
-        } else {
-            try printAllLists()
-        }
+    func findNotes() throws -> [Note] {
+        let rows = try Row.fetchCursor(db, "SELECT ZTITLE, ZTEXT FROM ZSFNOTE WHERE ZTRASHED=0")
+        return try Array(rows.map { Note(title: $0["ZTITLE"], content: $0["ZTEXT"]) })
+    }
+}
 
+final class TeddyList {
+
+    struct Options: OptionSet {
+        let rawValue: Int
+
+        /// Print all lists, including completed ones
+        static let includeCompleted = Options(rawValue: 1 << 0)
+
+        static let defaults: Options = []
     }
 
-    func printAllLists() throws {
-        let homeDirURL = URL(fileURLWithPath: NSHomeDirectory())
-        let dbQueue = try DatabaseQueue(path: "\(homeDirURL.absoluteString)/Library/Containers/net.shinyfrog.bear/Data/Documents/Application Data/database.sqlite")
+    private let options: Options
+    private let database: LocalDatabase
+
+    init(database: LocalDatabase, options: Options) {
+        self.database = database
+        self.options = options
+    }
+
+    func list() throws -> [(String, [List])] {
 
         let parser = Parser()
 
-        try dbQueue.inDatabase { db in
-            let rows = try Row.fetchCursor(db, "SELECT ZTITLE, ZTEXT FROM ZSFNOTE WHERE ZTRASHED=0")
-            while let row = try rows.next() {
-                let title: String = row["ZTITLE"]
-                let lists = try parser.parse(row["ZTEXT"])
-                guard lists.count > 0 else { continue }
-
-                print(title)
-                print(String(repeating: "=", count: title.characters.count))
-
-                lists.forEach { list in
-                    list.tasks.forEach { task in
-                        let symbol = task.done ? "✅" : "🅾️"
-                        print("\(symbol)  \(task.title)")
-                    }
-
-                    print()
+        let result = try database.findNotes()
+            .map { note -> (String, [List]) in
+                let lists = try parser.parse(note.content).filter { list in
+                    let tasks = list.tasks.filter { options.contains(.includeCompleted) || !$0.done }
+                    return tasks.count > 0
                 }
+
+                print("Number of lists = \(lists.count)")
+                return (note.title, lists)
             }
-        }
+            .flatMap { $0 }
+            .filter { !$0.1.isEmpty }
+        return result
     }
+}
 
-    func help() {
-        let content = """
-TeddyBear v0.1
-==============
-
-Parse your Bear notes and list the todolists.
-
-Usage: teddylist <command> [<args>]
-
-Run teddyList --help to print this message.
-"""
-        print(content)
-    }
+func ==(lhs: (String, [List]), rhs: (String, [List])) -> Bool {
+    return lhs.0 == rhs.0 && lhs.1 == rhs.1
 }
