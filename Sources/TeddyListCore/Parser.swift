@@ -10,11 +10,8 @@ struct List {
     let tasks: [Task]
 }
 
-extension String {
-    var trimmed: String {
-        return self.trimmingCharacters(in: .whitespaces)
-    }
-}
+extension Task: AutoEquatable {}
+extension List: AutoEquatable {}
 
 final class Parser {
 
@@ -57,6 +54,4 @@ final class Parser {
     }
 }
 
-extension Task: AutoEquatable {}
-extension List: AutoEquatable {}
 
