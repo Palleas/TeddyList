@@ -2,6 +2,7 @@ import Foundation
 
 // Worst name in the entire world? Probably.
 struct ParsedNote: Encodable {
+    let noteIdentifier: String
     let title: String
     let lists: [List]
 }
@@ -37,7 +38,7 @@ final class TeddyList {
                     return tasks.count > 0
                 }
 
-                return ParsedNote(title: note.title, lists: lists)
+                return ParsedNote(noteIdentifier: note.id, title: note.title, lists: lists)
             }
             .flatMap { $0 }
             .filter { !$0.lists.isEmpty }
