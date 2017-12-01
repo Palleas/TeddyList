@@ -1,5 +1,10 @@
 import Foundation
 
+// Worst name in the entire world? Probably.
+struct ParsedNote: Encodable {
+    let title: String
+    let lists: [List]
+}
 
 final class TeddyList {
 
@@ -21,21 +26,21 @@ final class TeddyList {
         self.options = options
     }
 
-    func list() throws -> [(String, [List])] {
+    func list() throws -> [ParsedNote] {
 
         let parser = Parser()
 
         let result = try database.findNotes()
-            .map { note -> (String, [List]) in
+            .map { note -> ParsedNote in
                 let lists = try parser.parse(note.content).filter { list in
                     let tasks = list.tasks.filter { options.contains(.includeCompleted) || !$0.done }
                     return tasks.count > 0
                 }
 
-                return (note.title, lists)
+                return ParsedNote(title: note.title, lists: lists)
             }
             .flatMap { $0 }
-            .filter { !$0.1.isEmpty }
+            .filter { !$0.lists.isEmpty }
         return result
     }
 }

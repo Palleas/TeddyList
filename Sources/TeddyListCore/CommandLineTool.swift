@@ -48,33 +48,24 @@ public final class CommandLineTool {
             options.insert(.includeCompleted)
         }
 
-        try printAllLists(option: options)
+        try printAllLists(options: options)
     }
 
-    func printAllLists(option: TeddyList.Options) throws {
+    func printAllLists(options: TeddyList.Options) throws {
         let homeDirURL = URL(fileURLWithPath: NSHomeDirectory())
         let dbQueue = try DatabaseQueue(path: "\(homeDirURL.absoluteString)/Library/Containers/net.shinyfrog.bear/Data/Documents/Application Data/database.sqlite")
         try dbQueue.inDatabase { db in
-            let options: TeddyList.Options
-            if let first = arguments.first, first == "--all" {
-                options = [.includeCompleted]
+
+            let teddy = TeddyList(database: SQLiteDatabase(db: db), options: options)
+
+            let printer: Printer
+            if options.contains(.useJSON) {
+                printer = JSONPrinter()
             } else {
-                options = .defaults
+                printer = PrettyTextPrinter()
             }
 
-            let teddy = TeddyList(database: SQLiteDatabase(db: db), options:options)
-
-            try teddy.list().forEach { (title, lists) in
-                print(title)
-                print(String(repeating: "=", count: title.characters.count))
-                print()
-
-                lists.flatMap { $0.tasks }.forEach { task in
-                    let symbol = task.done ? "✅" : "🅾️"
-                    print("\(symbol)  \(task.title)")
-                }
-                print()
-            }
+            try printer.printAll(notes: teddy.list())
         }
 
     }
