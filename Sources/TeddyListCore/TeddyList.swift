@@ -1,5 +1,6 @@
 import Foundation
 
+
 final class TeddyList {
 
     struct Options: OptionSet {
@@ -7,6 +8,7 @@ final class TeddyList {
 
         /// Print all lists, including completed ones
         static let includeCompleted = Options(rawValue: 1 << 0)
+        static let useJSON = Options(rawValue: 1 << 1)
 
         static let defaults: Options = []
     }

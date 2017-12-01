@@ -3,9 +3,12 @@
 PREFIX?=/usr/local
 INSTALL_NAME = tdl
 
-install: build install_bin
+install: release install_bin
 
 build:
+	swift build
+
+release:
 	swift package update
 	swift build --enable-prefetching -c release -Xswiftc -static-stdlib
 
