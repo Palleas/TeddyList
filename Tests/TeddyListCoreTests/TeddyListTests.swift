@@ -7,18 +7,18 @@ final class TeddyListTests: XCTestCase {
     func testListingListFromNotes() throws {
         let teddy = TeddyList(database: MockDatabase(), options: .defaults)
         let lists = try teddy.list()
-        let expected = ("A note title", [
+        let expected = (ParsedNote(noteIdentifier: "note-2", title: "A note title", lists: [
             List(tasks: [
                 Task(title: "Batman", done: false),
                 Task(title: "Green Lantern", done: true),
                 Task(title: "Green Arrow", done: false),
                 Task(title: "Flash", done: true),
                 ])
-            ])
+            ]))
 
         XCTAssertEqual(1, lists.count)
-        XCTAssertEqual(expected.0, lists[0].0)
-        XCTAssertEqual(expected.1, lists[0].1)
+        XCTAssertEqual(expected.title, lists[0].title)
+        XCTAssertEqual(expected.lists, lists[0].lists)
 
     }
 
@@ -31,7 +31,7 @@ final class TeddyListTests: XCTestCase {
     func testListingListFromNotesIncludingCompletedOnes() throws {
         let teddy = TeddyList(database: MockDatabase(), options: [.includeCompleted])
         let lists = try teddy.list()
-        let expected = ("A note title", [
+        let expected = ParsedNote(noteIdentifier: "", title: "A note title", lists: [
             List(tasks: [
                 Task(title: "Batman", done: false),
                 Task(title: "Green Lantern", done: true),
@@ -46,8 +46,8 @@ final class TeddyListTests: XCTestCase {
 
         // Boooo
         XCTAssertEqual(1, lists.count)
-        XCTAssertEqual(expected.0, lists[0].0)
-        XCTAssertEqual(expected.1, lists[0].1)
+        XCTAssertEqual(expected.title, lists[0].title)
+        XCTAssertEqual(expected.lists, lists[0].lists)
     }
 
 }
@@ -55,9 +55,9 @@ final class TeddyListTests: XCTestCase {
 struct DatabaseWithoutLists: LocalDatabase {
     func findNotes() throws -> [Note] {
         return [
-            Note(title: "A note without lists", content: ""),
-            Note(title: "A second note without lists", content: ""),
-            Note(title: "A 3rd note without lists", content: "")
+            Note(id: "note-1", title: "A note without lists", content: ""),
+            Note(id: "note-2", title: "A second note without lists", content: ""),
+            Note(id: "note-3", title: "A 3rd note without lists", content: "")
         ]
     }
 }
@@ -66,8 +66,8 @@ struct MockDatabase: LocalDatabase {
 
     func findNotes() -> [Note] {
         return [
-            Note(title: "A note without lists", content: ""),
-            Note(title: "A note title", content: """
+            Note(id: "note-1", title: "A note without lists", content: ""),
+            Note(id: "note-2", title: "A note title", content: """
 # List of people
 
 ## Good peoples
