@@ -1,61 +1,73 @@
 import Foundation
 import GRDB
+import Utility
 
 public final class CommandLineTool {
     private let arguments: [String]
 
-    public init(arguments: [String] = CommandLine.arguments) {
+    enum Output {
+        case prettyText
+        case json
+    }
+
+    public init(arguments: [String]) {
         self.arguments = arguments
     }
 
     public func run() throws {
-        if let first = arguments.first, first == "--help" {
-            help()
-        } else {
-            try printAllLists(arguments: Array(arguments.dropFirst()))
+        let parser = ArgumentParser(
+            commandName: "tdl",
+            usage: "[--json true]",
+            overview: ""
+        )
+
+        let useJSON = parser.add(
+            option: "--json",
+            shortName: "-j",
+            kind: Bool.self,
+            usage: "Export notes as JSON",
+            completion: nil
+        )
+
+        let displayCompleted = parser.add(
+            option: "--all",
+            shortName: "-a",
+            kind: Bool.self,
+            usage: "Include completed notes",
+            completion: nil
+        )
+
+        let result = try parser.parse(arguments)
+
+        var options = TeddyList.Options.defaults
+        if case let .some(json) = result.get(useJSON), json {
+            options.insert(.useJSON)
         }
 
+        if case let .some(completed) = result.get(displayCompleted), completed {
+            options.insert(.includeCompleted)
+        }
+
+        try printAllLists(options: options)
     }
 
-    func printAllLists(arguments: [String]) throws {
+    func printAllLists(options: TeddyList.Options) throws {
         let homeDirURL = URL(fileURLWithPath: NSHomeDirectory())
         let dbQueue = try DatabaseQueue(path: "\(homeDirURL.absoluteString)/Library/Containers/net.shinyfrog.bear/Data/Documents/Application Data/database.sqlite")
         try dbQueue.inDatabase { db in
-            let options: TeddyList.Options
-            if let first = arguments.first, first == "--all" {
-                options = [.includeCompleted]
+
+            let teddy = TeddyList(database: SQLiteDatabase(db: db), options: options)
+
+            let printer: Printer
+            if options.contains(.useJSON) {
+                printer = JSONPrinter()
             } else {
-                options = .defaults
+                printer = PrettyTextPrinter()
             }
 
-            let teddy = TeddyList(database: SQLiteDatabase(db: db), options:options)
-
-            try teddy.list().forEach { (title, lists) in
-                print(title)
-                print(String(repeating: "=", count: title.characters.count))
-                print()
-
-                lists.flatMap { $0.tasks }.forEach { task in
-                    let symbol = task.done ? "✅" : "🅾️"
-                    print("\(symbol)  \(task.title)")
-                }
-                print()
-            }
+            try printer.printAll(notes: teddy.list())
         }
 
     }
 
-    func help() {
-        let content = """
-TeddyBear v0.1
-==============
-
-Parse your Bear notes and list the todolists.
-
-Usage: teddylist <command> [<args>]
-
-Run teddyList --help to print this message.
-"""
-        print(content)
-    }
 }

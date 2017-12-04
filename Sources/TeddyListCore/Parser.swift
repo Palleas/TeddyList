@@ -1,12 +1,12 @@
 import Foundation
 import os.log
 
-struct Task {
+struct Task: Encodable {
     let title: String
     let done: Bool
 }
 
-struct List {
+struct List: Encodable {
     let tasks: [Task]
 }
 

@@ -15,8 +15,17 @@
         "repositoryURL": "https://github.com/groue/GRDB.swift.git",
         "state": {
           "branch": "Swift4",
-          "revision": "e784ebbcddb294f978944bf8e800830c24bad3c5",
+          "revision": "cafbecd8afe0300cf53575ff24e203e0ec1632ce",
           "version": null
+        }
+      },
+      {
+        "package": "SwiftPM",
+        "repositoryURL": "https://github.com/apple/swift-package-manager.git",
+        "state": {
+          "branch": null,
+          "revision": "90abb3c4c9415afee34291e66e655c58a1902784",
+          "version": "0.1.0"
         }
       }
     ]

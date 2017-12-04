@@ -1,9 +1,21 @@
-build:
-	@swift build
+# Shamelessly inspired from https://github.com/JohnSundell/Marathon/blob/master/Makefile
+.PHONY: build
+PREFIX?=/usr/local
+INSTALL_NAME = tdl
 
-install:
-	@swift build -c release -Xswiftc -static-stdlib
-	@cp -f .build/release/TeddyList /usr/local/bin/teddyList
+install: release install_bin
+
+build:
+	swift build
+
+release:
+	swift package update
+	swift build --enable-prefetching -c release -Xswiftc -static-stdlib
+
+install_bin: build
+	mkdir -p $(PREFIX)/bin
+	mv .build/Release/TeddyList .build/Release/$(INSTALL_NAME)
+	install .build/Release/$(INSTALL_NAME) $(PREFIX)/bin
 
 test:
 	@swift test
